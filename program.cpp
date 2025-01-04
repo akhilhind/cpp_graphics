@@ -27,7 +27,7 @@ public:
         if(last_pos == pos) {
             return;
         }
-        cout << "ADDING A NEW DOT" << endl;
+        // cout << "ADDING A NEW DOT" << endl;
         CircleShape dot(5);
         dot.setPosition(pos - Vector2f(dot.getRadius(), dot.getRadius()));
         all_dots.push_back(dot);
@@ -60,6 +60,17 @@ int main() {
     click_count.setFillColor(Color::Black);
     click_count.setPosition({10, 10});
     click_count.setStyle(Text::Bold | Text::Underlined);
+
+
+    Text fpsText(font);
+    fpsText.setFont(font);
+    fpsText.setCharacterSize(20);
+    fpsText.setFillColor(sf::Color::Black);
+    fpsText.setPosition({200, 50});
+
+    sf::Clock clock;
+    int frameCount = 0;
+    float elapsedTime = 0.0f;
 
 
     RectangleShape background(Vector2f(window.getSize()));
@@ -137,6 +148,16 @@ int main() {
             }
         }
 
+        
+        frameCount++;
+        elapsedTime += clock.restart().asSeconds();
+
+        if (elapsedTime >= 1.0f) {
+            fpsText.setString("FPS: " + std::to_string(frameCount));
+            frameCount = 0;
+            elapsedTime = 0.0f;
+        }
+        
         window.clear();
 
         window.draw(background);
@@ -150,6 +171,7 @@ int main() {
         }
 
         window.draw(circle);
+        window.draw(fpsText);
 
         window.draw(click_count);
 
