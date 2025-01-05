@@ -244,8 +244,14 @@ public:
             x_dir = -1;
         }
 
+        if(circle.getPosition().y <= 0) {
+            y_dir = 1;
+        } else if(circle.getPosition().y >= 600 - 2 * circle.getRadius()) {
+            y_dir = -1;
+        }
+
         if (last_moved.getElapsedTime().asMilliseconds() > 30) {
-            circle.setPosition({circle.getPosition().x + x_dir * 10, circle.getPosition().y});
+            circle.setPosition({circle.getPosition().x + x_dir * 10, circle.getPosition().y + y_dir * 10});
             last_moved.restart();
         }
         sound_effects.cleanUp();
