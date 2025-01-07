@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
+#include <math.h>
 using namespace sf;
 
 // CircleShape createCircle(CircleShape circle) {
@@ -219,22 +220,30 @@ private:
     int start_x, start_y;
     bool hit_x_edge = false;
 public:
+    int radius;
+    float curr_x, curr_y;
     CircleShape circle;
     SoundEffects sound_effects;
 
     Circle(int radius=50, float start_x=50, float start_y=50) : circle(radius), start_x(start_x), start_y(start_y) {
         circle.setPosition({start_x, start_y});
         circle.setFillColor(Color::Red);
+        this->radius = radius;
+        this->curr_x = start_x, this->curr_y = start_y;
     }
 
     void move() {
-        bool is_at_x_edge = (circle.getPosition().x <= 0 || 
-                             circle.getPosition().x >= 800 - 2 * circle.getRadius());
+        bool is_at_edge = (
+            circle.getPosition().x <= 0
+            || circle.getPosition().x >= 800 - 2 * circle.getRadius()
+            || circle.getPosition().y <= 0
+            || circle.getPosition().y >= 600 - 2 * circle.getRadius()
+        );
 
-        if (is_at_x_edge && !hit_x_edge) {
+        if (is_at_edge && !hit_x_edge) {
             sound_effects.playSound("boink");
             hit_x_edge = true;
-        } else if (!is_at_x_edge) {
+        } else if (!is_at_edge) {
             hit_x_edge = false;
         }
 
@@ -251,7 +260,13 @@ public:
         }
 
         if (last_moved.getElapsedTime().asMilliseconds() > 30) {
-            circle.setPosition({circle.getPosition().x + x_dir * 10, circle.getPosition().y + y_dir * 10});
+            curr_x += x_dir * 10;
+            curr_y += y_dir * 10;
+            circle.setPosition({curr_x, curr_y});
+            cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+            cout << curr_x << " " << curr_y << endl;
+            cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
+            // circle.setPosition({circle.getPosition().x + x_dir * 10, circle.getPosition().y + y_dir * 10});
             last_moved.restart();
         }
         sound_effects.cleanUp();
@@ -259,6 +274,37 @@ public:
 
     Vector2f getPosition() {
         return circle.getPosition();
+    }
+};
+
+
+class HandleCollision {
+private:
+    vector<Circle> circles;
+public:
+    HandleCollision(vector<Circle> circles): circles(circles) {}
+    void updateDirection(Circle &circle) {
+
+    }
+    void checkCollition() {
+        for(int i = 0; i < circles.size(); i++) {
+            for(int j = 0; j < circles.size(); j++) {
+                if(i == j) continue;
+
+                auto circleA = circles[i], circleB = circles[j];
+                
+                auto centerA = circleA.circle.getPosition();
+                auto centerB = circleB.circle.getPosition();
+                
+                float centerDist = sqrt(pow(centerA.x - centerB.x, 2) + pow(centerA.y - centerB.y, 2));
+
+                cout << "centerDist: " << centerDist << endl;
+
+                if(centerDist < (circleA.radius + circleB.radius)) {
+                    cout << "Collision detected!" << endl;
+                }
+            }
+        }
     }
 };
 
@@ -286,7 +332,18 @@ int main() {
     // define two circles
     // CircleShape circle1(50), circle2(50);
 
-    Circle circle1, circle2(20, 150, 150);
+    Circle circle1, circle2(20, 190, 150);
+
+    cout << "**************************************" << endl;
+    cout << circle1.radius << endl;
+    cout << circle2.radius << endl;
+    cout << "**************************************" << endl;
+
+    vector<Circle> circles;
+    circles.emplace_back(circle1);
+    circles.emplace_back(circle2);
+
+    HandleCollision collisionHandler(circles);
 
     Clock clock;
 
@@ -298,6 +355,7 @@ int main() {
         }
         circle1.move();
         circle2.move();
+        collisionHandler.checkCollition();
         window.clear();
         window.draw(background);
         window.draw(circle1.circle);
