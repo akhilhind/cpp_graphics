@@ -216,10 +216,11 @@ public:
 class Circle {
 private:
     Clock last_moved;
-    int x_dir = -1, y_dir = -1;
+    Vector2i last_pos;
     int start_x, start_y;
     bool hit_x_edge = false;
 public:
+    int x_dir = -1, y_dir = -1;
     int radius;
     float curr_x, curr_y;
     CircleShape circle;
@@ -230,6 +231,7 @@ public:
         circle.setFillColor(Color::Red);
         this->radius = radius;
         this->curr_x = start_x, this->curr_y = start_y;
+        this->last_pos = {int(this->curr_x), int(this->curr_y)};
     }
 
     void move() {
@@ -262,46 +264,76 @@ public:
         if (last_moved.getElapsedTime().asMilliseconds() > 30) {
             curr_x += x_dir * 10;
             curr_y += y_dir * 10;
-            circle.setPosition({curr_x, curr_y});
-            cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
-            cout << curr_x << " " << curr_y << endl;
-            cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$" << endl;
-            // circle.setPosition({circle.getPosition().x + x_dir * 10, circle.getPosition().y + y_dir * 10});
+            this->circle.setPosition({curr_x, curr_y});
+            cout << this->circle.getPosition().x << " " << this->circle.getPosition().y << endl;
+            
+            if(int(curr_x) != this->last_pos.x || int(curr_y) != this->last_pos.y) {
+                cout << "circle with radius: " << this->radius << " is now at: ";
+                cout << "Updated position: (" << curr_x << ", " << curr_y << ")" << endl;
+            }
+
             last_moved.restart();
         }
         sound_effects.cleanUp();
+        // if(this->radius == 20) {
+        //     cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+        //     cout << this->radius << endl;
+        //     cout << curr_x << " " << curr_y << endl;
+        //     cout << this->circle.getPosition().x << this->circle.getPosition().y << endl;
+        //     cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
+        // }
     }
 
     Vector2f getPosition() {
-        return circle.getPosition();
+        return this->circle.getPosition();
     }
 };
 
 
 class HandleCollision {
 private:
-    vector<Circle> circles;
+    vector<Circle*> circles;
 public:
-    HandleCollision(vector<Circle> circles): circles(circles) {}
+    HandleCollision(vector<Circle*> &cc): circles(cc) {}
     void updateDirection(Circle &circle) {
 
     }
     void checkCollition() {
+        // cout << endl << endl << endl << "++++++++++++++++++++++++++++++" << endl;
+        // for(int i=0; i<circles.size(); i++) {
+        //     for(int j=i+1; j<circles.size(); j++) {
+        //         auto* circleA = circles[i];
+        //         auto* circleB = circles[j];
+        //         cout << circleA->circle.getPosition().x << " " << circleA->circle.getPosition().y << endl;
+        //         cout << circleB->circle.getPosition().x << " " << circleB->circle.getPosition().y << endl;
+        //     }
+        // }
+        // cout << "++++++++++++++++++++++++++" << endl << endl << endl;
         for(int i = 0; i < circles.size(); i++) {
-            for(int j = 0; j < circles.size(); j++) {
+            for(int j = i+1; j < circles.size(); j++) {
                 if(i == j) continue;
 
-                auto circleA = circles[i], circleB = circles[j];
+                auto *circleA = circles[i];
+                auto *circleB = circles[j];
                 
-                auto centerA = circleA.circle.getPosition();
-                auto centerB = circleB.circle.getPosition();
+                auto centerA = circleA->circle.getPosition();
+                auto centerB = circleB->circle.getPosition();
+                // cout << circleA.radius << " " << circleB.radius << endl;
+                // cout << endl << "**************************" << endl;
+                // cout << centerA.x << " " << centerA.y << endl;
+                // cout << centerB.x << " " << centerB.y << endl;
+                // cout << "**************************" << endl;
+                // cout << centerA.x << " " << centerA.y << endl;
+                // cout << centerB.x << " " << centerB.y << endl;
                 
                 float centerDist = sqrt(pow(centerA.x - centerB.x, 2) + pow(centerA.y - centerB.y, 2));
 
                 cout << "centerDist: " << centerDist << endl;
 
-                if(centerDist < (circleA.radius + circleB.radius)) {
+                if(centerDist < (circleA->radius + circleB->radius)) {
                     cout << "Collision detected!" << endl;
+                    circleA->curr_x *= -1, circleA->curr_y *= -1;
+                    circleB->curr_x *= -1, circleB->curr_y *= -1; 
                 }
             }
         }
@@ -332,16 +364,16 @@ int main() {
     // define two circles
     // CircleShape circle1(50), circle2(50);
 
-    Circle circle1, circle2(20, 190, 150);
+    Circle circle1, circle2(20, 500, 50);
 
-    cout << "**************************************" << endl;
-    cout << circle1.radius << endl;
-    cout << circle2.radius << endl;
-    cout << "**************************************" << endl;
+    // cout << "**************************************" << endl;
+    // cout << circle1.radius << endl;
+    // cout << circle2.radius << endl;
+    // cout << "**************************************" << endl;
 
-    vector<Circle> circles;
-    circles.emplace_back(circle1);
-    circles.emplace_back(circle2);
+    vector<Circle*> circles;
+    circles.emplace_back(&circle1);
+    circles.emplace_back(&circle2);
 
     HandleCollision collisionHandler(circles);
 
@@ -355,6 +387,10 @@ int main() {
         }
         circle1.move();
         circle2.move();
+        cout << endl << "#######################" << endl;
+        cout << circle1.circle.getPosition().x << " " << circle1.circle.getPosition().y << endl;
+        cout << circle2.circle.getPosition().x << " " << circle2.circle.getPosition().y << endl;
+        cout << "#######################" << endl;
         collisionHandler.checkCollition();
         window.clear();
         window.draw(background);
