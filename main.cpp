@@ -261,9 +261,9 @@ public:
             y_dir = -1;
         }
 
-        if (last_moved.getElapsedTime().asMilliseconds() > 30) {
-            curr_x += x_dir * 10;
-            curr_y += y_dir * 10;
+        if (last_moved.getElapsedTime().asMilliseconds() > 10) {
+            curr_x += x_dir * 2;
+            curr_y += y_dir * 2;
             this->circle.setPosition({curr_x, curr_y});
             cout << this->circle.getPosition().x << " " << this->circle.getPosition().y << endl;
             
@@ -326,14 +326,16 @@ public:
                 // cout << centerA.x << " " << centerA.y << endl;
                 // cout << centerB.x << " " << centerB.y << endl;
                 
-                float centerDist = sqrt(pow(centerA.x - centerB.x, 2) + pow(centerA.y - centerB.y, 2));
+                float centerDist = pow(centerA.x - centerB.x, 2) + pow(centerA.y - centerB.y, 2);
 
                 cout << "centerDist: " << centerDist << endl;
 
-                if(centerDist < (circleA->radius + circleB->radius)) {
+                if(centerDist < pow(circleA->radius + circleB->radius, 2)) {
                     cout << "Collision detected!" << endl;
-                    circleA->curr_x *= -1, circleA->curr_y *= -1;
-                    circleB->curr_x *= -1, circleB->curr_y *= -1; 
+                    circleA->x_dir *= -1;
+                    circleB->x_dir *= -1;
+                    circleA->circle.setPosition({circleA->curr_x + circleA->x_dir * 10, circleA->curr_y + circleA->y_dir * 10});
+                    circleB->circle.setPosition({circleB->curr_x + circleB->x_dir * 10, circleB->curr_y + circleB->y_dir * 10});
                 }
             }
         }
@@ -364,8 +366,7 @@ int main() {
     // define two circles
     // CircleShape circle1(50), circle2(50);
 
-    Circle circle1, circle2(20, 500, 50);
-
+    Circle circle1, circle2(50, 300, 300);
     // cout << "**************************************" << endl;
     // cout << circle1.radius << endl;
     // cout << circle2.radius << endl;
@@ -387,10 +388,10 @@ int main() {
         }
         circle1.move();
         circle2.move();
-        cout << endl << "#######################" << endl;
-        cout << circle1.circle.getPosition().x << " " << circle1.circle.getPosition().y << endl;
-        cout << circle2.circle.getPosition().x << " " << circle2.circle.getPosition().y << endl;
-        cout << "#######################" << endl;
+        // cout << endl << "#######################" << endl;
+        // cout << circle1.circle.getPosition().x << " " << circle1.circle.getPosition().y << endl;
+        // cout << circle2.circle.getPosition().x << " " << circle2.circle.getPosition().y << endl;
+        // cout << "#######################" << endl;
         collisionHandler.checkCollition();
         window.clear();
         window.draw(background);
